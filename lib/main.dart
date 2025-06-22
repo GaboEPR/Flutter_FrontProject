@@ -6,6 +6,7 @@ import 'package:proyectadas_flutter/UI/screens/welcome/welcome_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:proyectadas_flutter/UI/screens/animales/animales_list.dart';
 
 import 'data/providers/config_provider.dart';
 
@@ -78,7 +79,7 @@ class MyApp extends StatelessWidget {
           '/': (context) => const WelcomeScreen(),
           // '/config': (context) => const ConfigScreen(),
           '/home': (context) => const HomeScreen(),
-          // '/animales': (context) => const AnimalesListScreen(),
+          '/animales': (context) => const AnimalesListScreen(),
           // '/animales/form': (context) => const AnimalFormScreen(),
           // '/razas': (context) => const RazasListScreen(),
           // '/razas/form': (context) => const RazaFormScreen(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 
+
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
 
@@ -16,10 +17,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   // Nombres de los integrantes del grupo
   final List<String> _integrantes = [
-    'Juan Pérez García',
-    'María López Rodríguez', 
-    'Carlos Mendoza Silva',
-    'Ana Fernández Torres',
+    'Josseth Barraez',
+    'Kenneth Chan',
+    'Rafael Moreno',
+    'Gabriel Pérez',
   ];
 
   @override
@@ -29,11 +30,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _updateDateTime();
     });
-    
+
     // Navegar automáticamente después de 5 segundos
     Timer(const Duration(seconds: 5), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/config');
+        Navigator.pushReplacementNamed(context, '/home');
       }
     });
   }
@@ -60,10 +61,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF4CAF50),
-              Color(0xFF2E7D32),
-            ],
+            colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
           ),
         ),
         child: SafeArea(
@@ -94,9 +92,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         color: Color(0xFF4CAF50),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Título
                     const Text(
                       'Sistema de Gestión\nde Animales',
@@ -108,9 +106,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         height: 1.2,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     // Fecha y Hora
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -152,9 +150,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     // Integrantes
                     Container(
                       padding: const EdgeInsets.all(20),
@@ -181,35 +179,41 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 15),
-                          ..._integrantes.map((nombre) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 3),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.person,
-                                  size: 16,
-                                  color: Color(0xFF4CAF50),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    nombre,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF2E7D32),
-                                    ),
+                          ..._integrantes
+                              .map(
+                                (nombre) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 3,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.person,
+                                        size: 16,
+                                        color: Color(0xFF4CAF50),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          nombre,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Color(0xFF2E7D32),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          )).toList(),
+                              )
+                              .toList(),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               // Botón para continuar
               Padding(
                 padding: const EdgeInsets.all(20),
@@ -218,7 +222,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/config');
+                        Navigator.pushReplacementNamed(context, '/home');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
