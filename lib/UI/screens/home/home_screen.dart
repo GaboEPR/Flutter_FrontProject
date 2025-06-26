@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '/../data/providers/config_provider.dart';
+import '../../../data/providers/config_provider.dart';
+import '../../navigation/main_navbar.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              Navigator.pushNamed(context, '/config');
+              MainNavbar.of(context)?.changeTab(3);
             },
           ),
         ],
@@ -46,11 +47,7 @@ class HomeScreen extends StatelessWidget {
               ),
               child: const Column(
                 children: [
-                  Icon(
-                    Icons.pets,
-                    size: 50,
-                    color: Colors.white,
-                  ),
+                  Icon(Icons.pets, size: 50, color: Colors.white),
                   SizedBox(height: 10),
                   Text(
                     'Sistema de Gestión de Animales',
@@ -73,9 +70,9 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Opciones principales
             Expanded(
               child: GridView.count(
@@ -89,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                     'Gestionar registros de animales',
                     Icons.pets,
                     Colors.blue,
-                    '/animales',
+                    () => MainNavbar.of(context)?.changeTab(1),
                   ),
                   _buildMenuCard(
                     context,
@@ -97,7 +94,7 @@ class HomeScreen extends StatelessWidget {
                     'Administrar razas disponibles',
                     Icons.category,
                     Colors.orange,
-                    '/razas',
+                    () => MainNavbar.of(context)?.changeTab(2),
                   ),
                   _buildMenuCard(
                     context,
@@ -105,7 +102,7 @@ class HomeScreen extends StatelessWidget {
                     'Ajustes del servidor',
                     Icons.settings,
                     Colors.grey,
-                    '/config',
+                    () => MainNavbar.of(context)?.changeTab(3),
                   ),
                   _buildMenuCard(
                     context,
@@ -113,41 +110,36 @@ class HomeScreen extends StatelessWidget {
                     'Ver reportes y datos',
                     Icons.bar_chart,
                     Colors.purple,
-                    null, // Por implementar
+                    () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Funcionalidad en desarrollo')),
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-            
+
             // Estado de conexión
             Consumer<ConfigProvider>(
               builder: (context, configProvider, child) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: configProvider.isConfigured 
+                    color: configProvider.isConfigured
                         ? Colors.green.withOpacity(0.1)
                         : Colors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: configProvider.isConfigured 
-                          ? Colors.green 
-                          : Colors.orange,
+                      color: configProvider.isConfigured ? Colors.green : Colors.orange,
                       width: 1,
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        configProvider.isConfigured 
-                            ? Icons.cloud_done 
-                            : Icons.cloud_off,
-                        color: configProvider.isConfigured 
-                            ? Colors.green 
-                            : Colors.orange,
+                        configProvider.isConfigured ? Icons.cloud_done : Icons.cloud_off,
+                        color: configProvider.isConfigured ? Colors.green : Colors.orange,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -157,9 +149,7 @@ class HomeScreen extends StatelessWidget {
                               ? 'Conectado: ${configProvider.serverUrl}'
                               : 'Sin configurar servidor',
                           style: TextStyle(
-                            color: configProvider.isConfigured 
-                                ? Colors.green 
-                                : Colors.orange,
+                            color: configProvider.isConfigured ? Colors.green : Colors.orange,
                             fontSize: 12,
                           ),
                         ),
@@ -181,23 +171,13 @@ class HomeScreen extends StatelessWidget {
     String subtitle,
     IconData icon,
     Color color,
-    String? route,
+    VoidCallback onTap,
   ) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: InkWell(
-        onTap: route != null 
-            ? () => Navigator.pushNamed(context, route)
-            : () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Funcionalidad en desarrollo'),
-                  ),
-                );
-              },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(15),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -212,11 +192,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 40,
-                color: Colors.white,
-              ),
+              Icon(icon, size: 40, color: Colors.white),
               const SizedBox(height: 10),
               Text(
                 title,
@@ -236,59 +212,56 @@ class HomeScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-          }
-          
-          // Move CustomDrawer outside of HomeScreen
-          class CustomDrawer extends StatelessWidget {
-            const CustomDrawer({Key? key}) : super(key: key);
-          
-            @override
-            Widget build(BuildContext context) {
-              return Drawer(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: <Widget>[
-                    const DrawerHeader(
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                      ),
-                      child: Text(
-                        'Menú',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.pets),
-                      title: const Text('Animales'),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/animales');
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.category),
-                      title: const Text('Razas'),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/razas');
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.settings),
-                      title: const Text('Configuración'),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/config');
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }
-          }
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CustomDrawer extends StatelessWidget {
+  const CustomDrawer({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Colors.green),
+            child: Text(
+              'Menú',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.pets),
+            title: const Text('Animales'),
+            onTap: () {
+              Navigator.pop(context);
+              MainNavbar.of(context)?.changeTab(1);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.category),
+            title: const Text('Razas'),
+            onTap: () {
+              Navigator.pop(context);
+              MainNavbar.of(context)?.changeTab(2);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Configuración'),
+            onTap: () {
+              Navigator.pop(context);
+              MainNavbar.of(context)?.changeTab(3);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}

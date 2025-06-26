@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import '../../../core/app_routes.dart'; // Importar las rutas
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -33,7 +34,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     // Navegar automáticamente después de 5 segundos
     Timer(const Duration(seconds: 5), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/config');
+        // Cambiar a la ruta correcta
+        AppRoutes.navigateAndReplace(context, AppRoutes.main);
       }
     });
   }
@@ -218,7 +220,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/config');
+                        // Usar la ruta correcta
+                        AppRoutes.navigateAndReplace(context, AppRoutes.main);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
