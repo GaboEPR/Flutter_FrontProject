@@ -106,8 +106,8 @@ class HomeScreen extends StatelessWidget {
                   ),
                   _buildMenuCard(
                     context,
-                    'Estadísticas',
-                    'Ver reportes y datos',
+                    'Camara',
+                    'Asignar foto a animales',
                     Icons.bar_chart,
                     Colors.purple,
                     () {

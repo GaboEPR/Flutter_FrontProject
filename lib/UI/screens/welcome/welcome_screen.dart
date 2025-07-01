@@ -17,10 +17,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   // Nombres de los integrantes del grupo
   final List<String> _integrantes = [
-    'Juan Pérez García',
-    'María López Rodríguez', 
-    'Carlos Mendoza Silva',
-    'Ana Fernández Torres',
+    'Jhosseth Barreto',
+    'Rafael Moreno', 
+    'Gabriel Perez',
+    'Kenneth Chan',
   ];
 
   @override

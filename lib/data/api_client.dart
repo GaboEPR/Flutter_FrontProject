@@ -1,49 +1,25 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
-  static const String _baseUrlKey = 'server_url';
-  static String _baseUrl = '';
-  
-  // Headers por defecto
+  static const String _baseUrl = 'http://127.0.0.1:8000/';
+
   static const Map<String, String> _defaultHeaders = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
 
-  // Inicializar con URL guardada
-  static Future<void> initialize() async {
-    final prefs = await SharedPreferences.getInstance();
-    _baseUrl = prefs.getString(_baseUrlKey) ?? '';
-  }
-
-  // Configurar URL base
-  static Future<void> setBaseUrl(String url) async {
-    _baseUrl = url.endsWith('/') ? url : '$url/';
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_baseUrlKey, url);
-  }
-
-  // Obtener URL completa
   static String getFullUrl(String endpoint) {
-    if (_baseUrl.isEmpty) {
-      throw Exception('Base URL no configurada. Configure primero el servidor.');
-    }
     final cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
     return '$_baseUrl$cleanEndpoint';
   }
 
-  // GET Request
   static Future<ApiResponse> get(String endpoint) async {
     try {
       final url = getFullUrl(endpoint);
-      final response = await http.get(
-        Uri.parse(url),
-        headers: _defaultHeaders,
-      ).timeout(const Duration(seconds: 30));
-
+      final response = await http.get(Uri.parse(url), headers: _defaultHeaders)
+          .timeout(const Duration(seconds: 30));
       return _handleResponse(response);
     } catch (e) {
       return ApiResponse(
@@ -55,7 +31,6 @@ class ApiClient {
     }
   }
 
-  // POST Request
   static Future<ApiResponse> post(String endpoint, {Map<String, dynamic>? body}) async {
     try {
       final url = getFullUrl(endpoint);
@@ -64,7 +39,6 @@ class ApiClient {
         headers: _defaultHeaders,
         body: body != null ? json.encode(body) : null,
       ).timeout(const Duration(seconds: 30));
-
       return _handleResponse(response);
     } catch (e) {
       return ApiResponse(
@@ -76,7 +50,6 @@ class ApiClient {
     }
   }
 
-  // PUT Request
   static Future<ApiResponse> put(String endpoint, {Map<String, dynamic>? body}) async {
     try {
       final url = getFullUrl(endpoint);
@@ -85,7 +58,6 @@ class ApiClient {
         headers: _defaultHeaders,
         body: body != null ? json.encode(body) : null,
       ).timeout(const Duration(seconds: 30));
-
       return _handleResponse(response);
     } catch (e) {
       return ApiResponse(
@@ -97,15 +69,11 @@ class ApiClient {
     }
   }
 
-  // DELETE Request
   static Future<ApiResponse> delete(String endpoint) async {
     try {
       final url = getFullUrl(endpoint);
-      final response = await http.delete(
-        Uri.parse(url),
-        headers: _defaultHeaders,
-      ).timeout(const Duration(seconds: 30));
-
+      final response = await http.delete(Uri.parse(url), headers: _defaultHeaders)
+          .timeout(const Duration(seconds: 30));
       return _handleResponse(response);
     } catch (e) {
       return ApiResponse(
@@ -117,18 +85,14 @@ class ApiClient {
     }
   }
 
-  // Upload de archivos
   static Future<ApiResponse> uploadFile(String endpoint, File file, {String fieldName = 'file'}) async {
     try {
       final url = getFullUrl(endpoint);
       final request = http.MultipartRequest('POST', Uri.parse(url));
-      
-      // Agregar archivo
       request.files.add(await http.MultipartFile.fromPath(fieldName, file.path));
-      
+
       final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamedResponse);
-
       return _handleResponse(response);
     } catch (e) {
       return ApiResponse(
@@ -140,35 +104,9 @@ class ApiClient {
     }
   }
 
-  // Probar conexión
-  static Future<bool> testConnection() async {
-    try {
-      if (_baseUrl.isEmpty) return false;
-      
-      // Intentar health check
-      final healthResponse = await http.get(
-        Uri.parse('${_baseUrl}health'),
-        headers: _defaultHeaders,
-      ).timeout(const Duration(seconds: 10));
-
-      if (healthResponse.statusCode == 200) return true;
-
-      // Si no hay health, probar root
-      final rootResponse = await http.get(
-        Uri.parse(_baseUrl),
-        headers: _defaultHeaders,
-      ).timeout(const Duration(seconds: 10));
-
-      return rootResponse.statusCode == 200 || rootResponse.statusCode == 404;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // Manejar respuesta HTTP
   static ApiResponse _handleResponse(http.Response response) {
     final success = response.statusCode >= 200 && response.statusCode < 300;
-    
+
     dynamic data;
     String message = '';
 
@@ -195,7 +133,6 @@ class ApiClient {
     );
   }
 
-  // Obtener mensaje según código de estado
   static String _getStatusMessage(int statusCode) {
     switch (statusCode) {
       case 400:
@@ -213,12 +150,11 @@ class ApiClient {
       case 503:
         return 'Servicio no disponible';
       default:
-        return 'Error desconocido (${statusCode})';
+        return 'Error desconocido ($statusCode)';
     }
   }
 }
 
-// Clase para manejar respuestas de la API
 class ApiResponse {
   final bool success;
   final int statusCode;

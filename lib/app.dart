@@ -1,3 +1,4 @@
+// lib/app.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'UI/screens/welcome/welcome_screen.dart';
 import 'UI/navigation/main_navbar.dart';
 import 'data/providers/config_provider.dart';
+import 'data/providers/animal_provider.dart';
+// import 'data/providers/raza_provider.dart';
 import 'core/app_theme.dart';
 import 'core/app_routes.dart';
 
@@ -31,9 +34,12 @@ class MyApp extends StatelessWidget {
 
         return MultiProvider(
           providers: [
+            // Provider de configuración existente
             ChangeNotifierProvider(create: (_) => ConfigProvider(prefs)),
+            
+            // Nuevos providers para API
             // ChangeNotifierProvider(create: (_) => RazaProvider()),
-            // ChangeNotifierProvider(create: (_) => AnimalProvider()),
+            ChangeNotifierProvider(create: (_) => AnimalProvider()),
           ],
           child: MaterialApp(
             title: 'Gestión de Animales',

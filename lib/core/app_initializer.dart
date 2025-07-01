@@ -1,24 +1,25 @@
-import 'package:flutter/widgets.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppInitializer {
   static Future<void> initialize() async {
-    // Asegurar que los widgets estén inicializados
-    WidgetsFlutterBinding.ensureInitialized();
-    
-    // Inicializar localizaciones
-    await _initializeLocalization();
-  }
+    try {
+      WidgetsFlutterBinding.ensureInitialized();
 
-  static Future<void> _initializeLocalization() async {
-    // Inicializar los datos de localización para español
-    await initializeDateFormatting('es_ES', null);
-    
-    // También inicializar inglés como fallback
-    await initializeDateFormatting('en_US', null);
-    
-    // Establecer el locale por defecto para Intl
-    Intl.defaultLocale = 'es_ES';
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+
+      if (kDebugMode) {
+        print('✅ AppInitializer: Inicialización completada');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ AppInitializer: Error durante la inicialización: $e');
+      }
+      rethrow;
+    }
   }
 }
