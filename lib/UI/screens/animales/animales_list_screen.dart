@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proyectadas_flutter/Models/animal.dart';
+import 'package:proyectadas_flutter/models/animal.dart';
 import 'package:proyectadas_flutter/services/animales_services.dart';
 import 'animales_form_screen.dart';
 
@@ -33,7 +33,9 @@ class _AnimalesListScreenState extends State<AnimalesListScreen> {
       if (response.success) {
         setState(() {
           if (response.data is Map && response.data['animals'] is List) {
-            _animales = List<Map<String, dynamic>>.from(response.data['animals']);
+            _animales = List<Map<String, dynamic>>.from(
+              response.data['animals'],
+            );
           } else {
             _animales = [];
             _error = 'Formato de datos incorrecto';
@@ -68,20 +70,26 @@ class _AnimalesListScreenState extends State<AnimalesListScreen> {
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Confirmar eliminación'),
-        content: Text('¿Estás seguro de que deseas eliminar "${animal['descripcion']}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Confirmar eliminación'),
+            content: Text(
+              '¿Estás seguro de que deseas eliminar "${animal['descripcion']}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Eliminar',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
 
     if (confirm == true) {
@@ -108,13 +116,17 @@ class _AnimalesListScreenState extends State<AnimalesListScreen> {
     }
   }
 
-  Future<void> _abrirFormulario({Map<String, dynamic>? animal, int? index}) async {
+  Future<void> _abrirFormulario({
+    Map<String, dynamic>? animal,
+    int? index,
+  }) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AnimalesFormScreen(
-          animal: animal != null ? Animal.fromMap(animal) : null,
-        ),
+        builder:
+            (_) => AnimalesFormScreen(
+              animal: animal != null ? Animal.fromJson(animal) : null,
+            ),
       ),
     );
 
@@ -177,12 +189,21 @@ class _AnimalesListScreenState extends State<AnimalesListScreen> {
             const SizedBox(height: 16),
             Text(
               'Error al cargar los datos',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.grey),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 8),
-            Text(_error, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
+            Text(
+              _error,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: _cargarAnimales, child: const Text('Reintentar')),
+            ElevatedButton(
+              onPressed: _cargarAnimales,
+              child: const Text('Reintentar'),
+            ),
           ],
         ),
       );
@@ -195,9 +216,15 @@ class _AnimalesListScreenState extends State<AnimalesListScreen> {
           children: [
             Icon(Icons.pets, size: 64, color: Colors.grey),
             SizedBox(height: 16),
-            Text('No hay animales registrados', style: TextStyle(fontSize: 18, color: Colors.grey)),
+            Text(
+              'No hay animales registrados',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
             SizedBox(height: 8),
-            Text('Presiona el botón + para agregar el primer animal', style: TextStyle(color: Colors.grey)),
+            Text(
+              'Presiona el botón + para agregar el primer animal',
+              style: TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       );
@@ -215,17 +242,30 @@ class _AnimalesListScreenState extends State<AnimalesListScreen> {
               leading: CircleAvatar(
                 backgroundColor: Theme.of(context).primaryColor,
                 child: Text(
-                  (animal['descripcion']?.toString().substring(0, 1).toUpperCase()) ?? 'A',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  (animal['descripcion']
+                          ?.toString()
+                          .substring(0, 1)
+                          .toUpperCase()) ??
+                      'A',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              title: Text(animal['descripcion']?.toString() ?? 'Sin descripción', style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(
+                animal['descripcion']?.toString() ?? 'Sin descripción',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Código: ${animal['codAnimal'] ?? 'N/A'}'),
-                  Text('Raza: ${animal['codRaza'] ?? 'N/A'} - ${animal['sexo'] ?? 'N/A'}'),
-                  if (animal['edad'] != null) Text('Edad: ${animal['edad']} años'),
+                  Text(
+                    'Raza: ${animal['codRaza'] ?? 'N/A'} - ${animal['sexo'] ?? 'N/A'}',
+                  ),
+                  if (animal['edad'] != null)
+                    Text('Edad: ${animal['edad']} años'),
                 ],
               ),
               trailing: Row(
@@ -233,7 +273,8 @@ class _AnimalesListScreenState extends State<AnimalesListScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.edit, color: Colors.blue),
-                    onPressed: () => _abrirFormulario(animal: animal, index: index),
+                    onPressed:
+                        () => _abrirFormulario(animal: animal, index: index),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),

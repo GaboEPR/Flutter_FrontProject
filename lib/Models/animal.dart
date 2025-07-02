@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class Animal {
   final String codAnimal;
   final String descripcion;
@@ -6,6 +8,8 @@ class Animal {
   final String codRaza;
   final String colorPelaje;
   final String colorOjos;
+
+  final Uint8List? imagen;
   final Raza? raza; // Relación con Raza
   final String? imagenUrl; // URL de la imagen
 
@@ -17,6 +21,7 @@ class Animal {
     required this.codRaza,
     required this.colorPelaje,
     required this.colorOjos,
+    this.imagen,
     this.raza,
     this.imagenUrl,
   });
@@ -31,6 +36,8 @@ class Animal {
       codRaza: json['codRaza'] ?? json['CodRaza'] ?? '',
       colorPelaje: json['colorPelaje'] ?? json['ColorPelaje'] ?? '',
       colorOjos: json['colorOjos'] ?? json['Color Ojos'] ?? '',
+      imagen:
+          json['imagen'] != null ? Uint8List.fromList(json['imagen']) : null,
       raza: json['raza'] != null ? Raza.fromJson(json['raza']) : null,
       imagenUrl: json['imagenUrl'] ?? json['imagen_url'],
     );
@@ -46,6 +53,7 @@ class Animal {
       'codRaza': codRaza,
       'colorPelaje': colorPelaje,
       'colorOjos': colorOjos,
+      'imagen': imagen?.toList(),
       'imagenUrl': imagenUrl,
     };
   }
@@ -60,6 +68,7 @@ class Animal {
     String? colorPelaje,
     String? colorOjos,
     Raza? raza,
+    Uint8List? imagen,
     String? imagenUrl,
   }) {
     return Animal(
@@ -71,6 +80,7 @@ class Animal {
       colorPelaje: colorPelaje ?? this.colorPelaje,
       colorOjos: colorOjos ?? this.colorOjos,
       raza: raza ?? this.raza,
+      imagen: imagen ?? this.imagen,
       imagenUrl: imagenUrl ?? this.imagenUrl,
     );
   }
@@ -78,12 +88,12 @@ class Animal {
   // Validar si el animal es válido
   bool isValid() {
     return codAnimal.isNotEmpty &&
-           descripcion.isNotEmpty &&
-           sexo.isNotEmpty &&
-           edad > 0 &&
-           codRaza.isNotEmpty &&
-           colorPelaje.isNotEmpty &&
-           colorOjos.isNotEmpty;
+        descripcion.isNotEmpty &&
+        sexo.isNotEmpty &&
+        edad > 0 &&
+        codRaza.isNotEmpty &&
+        colorPelaje.isNotEmpty &&
+        colorOjos.isNotEmpty;
   }
 
   // Obtener edad en texto
@@ -125,10 +135,7 @@ class Raza {
   final String codRaza;
   final String descripcion;
 
-  Raza({
-    required this.codRaza,
-    required this.descripcion,
-  });
+  Raza({required this.codRaza, required this.descripcion});
 
   // Factory constructor para crear desde JSON
   factory Raza.fromJson(Map<String, dynamic> json) {
@@ -140,17 +147,11 @@ class Raza {
 
   // Convertir a JSON
   Map<String, dynamic> toJson() {
-    return {
-      'codRaza': codRaza,
-      'descripcion': descripcion,
-    };
+    return {'codRaza': codRaza, 'descripcion': descripcion};
   }
 
   // Crear copia con cambios
-  Raza copyWith({
-    String? codRaza,
-    String? descripcion,
-  }) {
+  Raza copyWith({String? codRaza, String? descripcion}) {
     return Raza(
       codRaza: codRaza ?? this.codRaza,
       descripcion: descripcion ?? this.descripcion,
