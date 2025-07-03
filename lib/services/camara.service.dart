@@ -96,13 +96,13 @@ class CameraService {
   }
 
   // Seleccionar imagen de galería
-  Future<File?> pickImageFromGallery({
+  Future<Uint8List?> pickImageBytesFromGallery({
     double? maxWidth,
     double? maxHeight,
     int? imageQuality,
   }) async {
     try {
-      final XFile? image = await _picker.pickImage(
+      final XFile? image = await ImagePicker().pickImage(
         source: ImageSource.gallery,
         maxWidth: maxWidth,
         maxHeight: maxHeight,
@@ -110,11 +110,11 @@ class CameraService {
       );
 
       if (image != null) {
-        return File(image.path);
+        return await image.readAsBytes(); // Compatible en web y móvil
       }
       return null;
     } catch (e) {
-      print('Error seleccionando imagen de galería: $e');
+      print('Error seleccionando imagen: $e');
       return null;
     }
   }
@@ -127,20 +127,23 @@ class CameraService {
   }
 
   // Guardar imagen en directorio de la app
-  Future<File?> saveImageToAppDirectory(File sourceFile, {String? customName}) async {
+  Future<File?> saveImageToAppDirectory(
+    File sourceFile, {
+    String? customName,
+  }) async {
     try {
       final Directory appDir = await getApplicationDocumentsDirectory();
       final String imagesDir = path.join(appDir.path, 'images');
-      
+
       // Crear directorio si no existe
       await Directory(imagesDir).create(recursive: true);
 
       // Generar nombre único si no se proporciona
-      final String fileName = customName ?? 
-          'animal_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      
+      final String fileName =
+          customName ?? 'animal_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
       final String newPath = path.join(imagesDir, fileName);
-      
+
       // Copiar archivo
       final File newFile = await sourceFile.copy(newPath);
       return newFile;
@@ -199,11 +202,16 @@ class CameraService {
     return {
       'available': true,
       'count': _cameras!.length,
-      'cameras': _cameras!.map((camera) => {
-        'name': camera.name,
-        'lensDirection': camera.lensDirection.toString(),
-        'sensorOrientation': camera.sensorOrientation,
-      }).toList(),
+      'cameras':
+          _cameras!
+              .map(
+                (camera) => {
+                  'name': camera.name,
+                  'lensDirection': camera.lensDirection.toString(),
+                  'sensorOrientation': camera.sensorOrientation,
+                },
+              )
+              .toList(),
     };
   }
 }

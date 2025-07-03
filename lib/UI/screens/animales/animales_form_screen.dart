@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyectadas_flutter/Models/raza.dart';
+import 'package:proyectadas_flutter/models/animal.dart';
 import 'package:proyectadas_flutter/data/providers/razas_provider.dart';
-
-import '../../../Models/animal.dart';
 import '../../../services/animales_services.dart';
+
 
 class AnimalesFormScreen extends StatefulWidget {
   final Animal? animal;
@@ -23,6 +23,8 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
   final _colorPelajeController = TextEditingController();
   final _colorOjosController = TextEditingController();
 
+  List<Raza> _razas = [];
+  bool _isLoadingRazas = true;
   String _sexoSeleccionado = 'Macho';
   String? _razaSeleccionada;
   bool _isLoading = false;
@@ -33,10 +35,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
   void initState() {
     super.initState();
     if (_isEditing) _llenarFormulario();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<RazaProvider>(context, listen: false);
-      if (provider.isEmpty) provider.cargarRazas();
-    });
+    _cargarRazas();
   }
 
   void _llenarFormulario() {
@@ -48,6 +47,48 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
     _razaSeleccionada = animal.codRaza;
     _colorPelajeController.text = animal.colorPelaje;
     _colorOjosController.text = animal.colorOjos;
+  }
+
+  Future<void> _cargarRazas() async {
+    try {
+      final razaProvider = Provider.of<RazaProvider>(context, listen: false);
+      if (razaProvider.isEmpty) {
+        await razaProvider.cargarRazas();
+      }
+      setState(() {
+        _razas = razaProvider.razas.map((map) => Raza.fromJson(map)).toList();
+        _isLoadingRazas = false;
+        if (_isEditing && widget.animal!.raza != null) {
+          final razaActual = widget.animal!.raza!;
+          if (!_razas.any((r) => r.codRaza == razaActual.codRaza)) {
+            _razas.add(razaActual);
+          }
+          _razaSeleccionada = razaActual.codRaza;
+        }
+      });
+    } catch (e) {
+      try {
+        final razas = await AnimalesService.getRazas();
+        setState(() {
+          _razas = razas.cast<Raza>();
+          _isLoadingRazas = false;
+          if (_isEditing && widget.animal!.raza != null) {
+            final razaActual = widget.animal!.raza!;
+            if (!_razas.any((r) => r.codRaza == razaActual.codRaza)) {
+              _razas.add(razaActual);
+            }
+            _razaSeleccionada = razaActual.codRaza;
+          }
+        });
+      } catch (e2) {
+        setState(() => _isLoadingRazas = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al cargar razas: $e2'), backgroundColor: Colors.orange),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _guardarAnimal() async {
@@ -62,8 +103,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final razaProvider = Provider.of<RazaProvider>(context, listen: false);
-      final raza = razaProvider.obtenerRazaPorCodigo(_razaSeleccionada!);
+      final raza = _razas.firstWhere((r) => r.codRaza == _razaSeleccionada);
 
       final animal = Animal(
         codAnimal: _codAnimalController.text.trim(),
@@ -73,11 +113,11 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
         codRaza: _razaSeleccionada!,
         colorPelaje: _colorPelajeController.text.trim(),
         colorOjos: _colorOjosController.text.trim(),
-        raza: Raza.fromMap(raza!), // asegúrate de tener fromMap en tu modelo
+        raza: raza,
       );
 
       if (_isEditing) {
-        await AnimalesService.updateAnimal(widget.animal!.codAnimal, animal);
+        await AnimalesService.actualizarAnimal(widget.animal!.codAnimal, animal.toJson());
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Animal actualizado correctamente'), backgroundColor: Colors.green),
@@ -116,11 +156,13 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final razaProvider = Provider.of<RazaProvider>(context);
-
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Editar Animal' : 'Nuevo Animal')),
-      body: razaProvider.isLoading
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Editar Animal' : 'Nuevo Animal'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
+      body: _isLoadingRazas
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
@@ -136,10 +178,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
                         prefixIcon: Icon(Icons.tag),
                       ),
                       enabled: !_isEditing,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'El código es requerido';
-                        return null;
-                      },
+                      validator: (value) => value == null || value.trim().isEmpty ? 'El código es requerido' : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -149,10 +188,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.description),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'La descripción es requerida';
-                        return null;
-                      },
+                      validator: (value) => value == null || value.trim().isEmpty ? 'La descripción es requerida' : null,
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
@@ -191,7 +227,12 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.pets),
                       ),
-                      items: razaProvider.dropdownItems,
+                      items: _razas
+                          .map((raza) => DropdownMenuItem(
+                                value: raza.codRaza,
+                                child: Text(raza.descripcion),
+                              ))
+                          .toList(),
                       onChanged: (value) => setState(() => _razaSeleccionada = value),
                       validator: (value) => value == null ? 'Selecciona una raza' : null,
                     ),
@@ -203,10 +244,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.color_lens),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'El color del pelaje es requerido';
-                        return null;
-                      },
+                      validator: (value) => value == null || value.trim().isEmpty ? 'El color del pelaje es requerido' : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -216,10 +254,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.remove_red_eye),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'El color de ojos es requerido';
-                        return null;
-                      },
+                      validator: (value) => value == null || value.trim().isEmpty ? 'El color de ojos es requerido' : null,
                     ),
                     const SizedBox(height: 32),
                     Row(
@@ -235,11 +270,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _guardarAnimal,
                             child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                                 : Text(_isEditing ? 'Actualizar' : 'Guardar'),
                           ),
                         ),

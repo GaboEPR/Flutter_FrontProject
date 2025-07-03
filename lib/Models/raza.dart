@@ -9,21 +9,29 @@ class Raza {
 
   factory Raza.fromJson(Map<String, dynamic> json) {
     return Raza(
-      codRaza: json['codRaza'] ?? json['CodRaza'] ?? '',
-      descripcion: json['descripcion'] ?? json['Descripcion'] ?? '',
+      codRaza: json['cod_raza'] ?? json['codRaza'] ?? '',
+      descripcion: json['descripcion'] ?? '',
     );
   }
 
   factory Raza.fromMap(Map<String, dynamic> map) {
     return Raza(
-      codRaza: map['codRaza'] ?? map['CodRaza'] ?? '',
-      descripcion: map['descripcion'] ?? map['Descripcion'] ?? '',
+      codRaza: map['cod_raza'] ?? map['codRaza'] ?? '',
+      descripcion: map['descripcion'] ?? '',
     );
+  }
+
+  // Added missing toMap() method
+  Map<String, dynamic> toMap() {
+    return {
+      'codRaza': codRaza,
+      'descripcion': descripcion,
+    };
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'codRaza': codRaza,
+      'cod_raza': codRaza,
       'descripcion': descripcion,
     };
   }
@@ -41,6 +49,9 @@ class Raza {
   bool isValid() {
     return codRaza.isNotEmpty && descripcion.isNotEmpty;
   }
+
+  // Add a getter for the name for better readability
+  String get nombre => descripcion;
 
   @override
   String toString() {
