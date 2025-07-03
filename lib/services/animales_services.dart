@@ -1,4 +1,5 @@
-import 'package:proyectadas_flutter/Models/animal.dart';
+import 'package:proyectadas_flutter/Models/animal.dart' as models_upper;
+import 'package:proyectadas_flutter/models/animal.dart';
 
 import '../../data/api_client.dart';
 import '../models/raza.dart' as raza_model;
@@ -39,4 +40,6 @@ class AnimalesService {
     }
     throw Exception('Error al obtener razas');
   }
+
+  static updateAnimal(String codAnimal, models_upper.Animal animal) {}
 }

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../models/animal.dart';
-import '../../../services/animales_services.dart'; // Importa el servicio de animales
+import 'package:provider/provider.dart';
+import 'package:proyectadas_flutter/Models/raza.dart';
+import 'package:proyectadas_flutter/data/providers/razas_provider.dart';
+
+import '../../../Models/animal.dart';
+import '../../../services/animales_services.dart';
 
 class AnimalesFormScreen extends StatefulWidget {
   final Animal? animal;
@@ -21,58 +25,29 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
 
   String _sexoSeleccionado = 'Macho';
   String? _razaSeleccionada;
-  List<Raza> _razas = [];
   bool _isLoading = false;
-  bool _isLoadingRazas = true;
 
   bool get _isEditing => widget.animal != null;
 
   @override
   void initState() {
     super.initState();
-    _cargarRazas();
-    if (_isEditing) {
-      _llenarFormulario();
-    }
+    if (_isEditing) _llenarFormulario();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<RazaProvider>(context, listen: false);
+      if (provider.isEmpty) provider.cargarRazas();
+    });
   }
 
   void _llenarFormulario() {
     final animal = widget.animal!;
     _codAnimalController.text = animal.codAnimal;
     _descripcionController.text = animal.descripcion;
-    _sexoSeleccionado = animal.sexoFormateado;
+    _sexoSeleccionado = animal.sexo;
     _edadController.text = animal.edad.toString();
     _razaSeleccionada = animal.codRaza;
     _colorPelajeController.text = animal.colorPelaje;
     _colorOjosController.text = animal.colorOjos;
-  }
-
-  Future<void> _cargarRazas() async {
-    try {
-      final razas = await AnimalesService.getRazas();
-      setState(() {
-        _razas = razas.cast<Raza>();
-        _isLoadingRazas = false;
-
-        if (_isEditing && widget.animal!.raza != null) {
-          final razaActual = widget.animal!.raza!;
-          final existeRaza = _razas.any((r) => r.codRaza == razaActual.codRaza);
-          if (!existeRaza) {
-            _razas.add(razaActual);
-          }
-          _razaSeleccionada = razaActual.codRaza;
-        }
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingRazas = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar razas: $e'), backgroundColor: Colors.orange),
-        );
-      }
-    }
   }
 
   Future<void> _guardarAnimal() async {
@@ -84,11 +59,12 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
+      final razaProvider = Provider.of<RazaProvider>(context, listen: false);
+      final raza = razaProvider.obtenerRazaPorCodigo(_razaSeleccionada!);
+
       final animal = Animal(
         codAnimal: _codAnimalController.text.trim(),
         descripcion: _descripcionController.text.trim(),
@@ -97,7 +73,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
         codRaza: _razaSeleccionada!,
         colorPelaje: _colorPelajeController.text.trim(),
         colorOjos: _colorOjosController.text.trim(),
-        raza: _razas.firstWhere((r) => r.codRaza == _razaSeleccionada),
+        raza: Raza.fromMap(raza!), // asegúrate de tener fromMap en tu modelo
       );
 
       if (_isEditing) {
@@ -108,7 +84,7 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
           );
         }
       } else {
-        await AnimalesService.crearAnimal(animal as Map<String, dynamic>);
+        await AnimalesService.crearAnimal(animal.toMap());
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Animal creado correctamente'), backgroundColor: Colors.green),
@@ -140,9 +116,11 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final razaProvider = Provider.of<RazaProvider>(context);
+
     return Scaffold(
       appBar: AppBar(title: Text(_isEditing ? 'Editar Animal' : 'Nuevo Animal')),
-      body: _isLoadingRazas
+      body: razaProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
@@ -209,16 +187,11 @@ class _AnimalesFormScreenState extends State<AnimalesFormScreen> {
                     DropdownButtonFormField<String>(
                       value: _razaSeleccionada,
                       decoration: const InputDecoration(
-                        labelText: 'Código de Raza',
+                        labelText: 'Raza',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.pets),
                       ),
-                      items: _razas
-                          .map((raza) => DropdownMenuItem(
-                                value: raza.codRaza,
-                                child: Text(raza.descripcion),
-                              ))
-                          .toList(),
+                      items: razaProvider.dropdownItems,
                       onChanged: (value) => setState(() => _razaSeleccionada = value),
                       validator: (value) => value == null ? 'Selecciona una raza' : null,
                     ),
